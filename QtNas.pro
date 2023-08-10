@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -15,10 +15,6 @@ SOURCES += \
 HEADERS += \
     mainwindow.h
 
-TRANSLATIONS += \
-    QtNas_zh_CN.ts
-CONFIG += lrelease
-CONFIG += embed_translations
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
