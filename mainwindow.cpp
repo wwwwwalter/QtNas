@@ -7,6 +7,8 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QByteArray>
+#include <QTextEdit>
+#include <QStatusBar>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -33,6 +35,10 @@ MainWindow::MainWindow(QWidget *parent)
         qDebug()<<tcpSocket->localAddress();
         qDebug()<<tcpSocket->localPort();
 
+        QStatusBar *bar = statusBar();
+        QString info(tcpSocket->localAddress().toString()+":"+QString::number(tcpSocket->localPort()));
+        bar->showMessage(info);
+
     });
 
     connect(tcpSocket,&QTcpSocket::readyRead,this,[=]{
@@ -44,6 +50,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
 
+    QVBoxLayout *vboxlayout = new QVBoxLayout;
     QHBoxLayout *hboxlayout = new QHBoxLayout;
     QLineEdit *addrEdit = new QLineEdit;
     QLineEdit *portEdit = new QLineEdit;
@@ -53,21 +60,59 @@ MainWindow::MainWindow(QWidget *parent)
     hboxlayout->addWidget(portEdit);
     hboxlayout->addWidget(msgEdit);
     hboxlayout->addWidget(button);
-    centralWidget()->setLayout(hboxlayout);
+    vboxlayout->addLayout(hboxlayout);
+    QTextEdit *textEdit = new QTextEdit;
+    vboxlayout->addWidget(textEdit);
+    centralWidget()->setLayout(vboxlayout);
+
+
+
 
 
 
 
     //udp + bind
     QUdpSocket *udpSocket = new QUdpSocket(this);
-    udpSocket->bind(tcpSocket->localPort());
-    QHostAddress addr(addrEdit->text());
-    quint16 port = portEdit->text().toUInt();
-    QByteArray byteArray = msgEdit->text().toLocal8Bit();
+    udpSocket->bind(tcpSocket->localPort()); //本地电脑 port <---> 路由器
 
-    connect(button,&QPushButton::clicked,this,[=]{
-        udpSocket->writeDatagram(byteArray,addr,port);
+
+    QTimer *timer = new QTimer(this);
+    timer->start(1000);
+
+    connect(timer,&QTimer::timeout,this,[=]{
+        qDebug()<<"timeout";
+        qint64 size = udpSocket->pendingDatagramSize();
+        size=100;
+        QByteArray msg;
+        msg.resize(size);
+        QHostAddress addr;
+        quint16 port;
+        qDebug()<<udpSocket->readDatagram(msg.data(),msg.size(),&addr,&port);
+        addrEdit->setText(addr.toString());
+        portEdit->setText(QString::number(port));
+        textEdit->append(QString::fromLocal8Bit(msg));
     });
+
+
+    connect(udpSocket,&QUdpSocket::readyRead,this,[=]{
+        if(udpSocket->hasPendingDatagrams()){
+            qint64 size = udpSocket->pendingDatagramSize();
+            QByteArray msg;
+            msg.resize(size);
+            QHostAddress addr;
+            quint16 port;
+            udpSocket->readDatagram(msg.data(),msg.size(),&addr,&port);
+            addrEdit->setText(addr.toString());
+            portEdit->setText(QString::number(port));
+            textEdit->append(QString::fromLocal8Bit(msg));
+        }
+
+    });
+
+
+
+
+
 
 
 
