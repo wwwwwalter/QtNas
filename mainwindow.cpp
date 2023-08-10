@@ -1,6 +1,12 @@
 #include "mainwindow.h"
 
 #include <QIcon>
+#include <QUdpSocket>
+#include <QTimer>
+#include <QHBoxLayout>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QByteArray>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -18,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
     qDebug()<<"connect...";
 
 
-    connect(tcpSocket,&QTcpSocket::connected,[=]{
+    connect(tcpSocket,&QTcpSocket::connected,this,[=]{
         qDebug()<<"connect to server";
         qDebug() << tcpSocket->peerAddress().toString();
         qDebug() << tcpSocket->peerPort();
@@ -29,10 +35,40 @@ MainWindow::MainWindow(QWidget *parent)
 
     });
 
-    connect(tcpSocket,&QTcpSocket::readyRead,[=]{
+    connect(tcpSocket,&QTcpSocket::readyRead,this,[=]{
         qDebug()<<"read ready";
         qDebug()<<QString(tcpSocket->readAll());
     });
+
+
+
+
+
+    QHBoxLayout *hboxlayout = new QHBoxLayout;
+    QLineEdit *addrEdit = new QLineEdit;
+    QLineEdit *portEdit = new QLineEdit;
+    QLineEdit *msgEdit = new QLineEdit;
+    QPushButton *button = new QPushButton("send");
+    hboxlayout->addWidget(addrEdit);
+    hboxlayout->addWidget(portEdit);
+    hboxlayout->addWidget(msgEdit);
+    hboxlayout->addWidget(button);
+    centralWidget()->setLayout(hboxlayout);
+
+
+
+
+    //udp + bind
+    QUdpSocket *udpSocket = new QUdpSocket(this);
+    udpSocket->bind(tcpSocket->localPort());
+    QHostAddress addr(addrEdit->text());
+    quint16 port = portEdit->text().toUInt();
+    QByteArray byteArray = msgEdit->text().toLocal8Bit();
+
+    connect(button,&QPushButton::clicked,this,[=]{
+        udpSocket->writeDatagram(byteArray,addr,port);
+    });
+
 
 
 
