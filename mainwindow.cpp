@@ -25,6 +25,9 @@ MainWindow::MainWindow(QWidget *parent)
     tcpSocket->connectToHost(QHostAddress("106.15.62.139"),1234);
     qDebug()<<"connect...";
 
+    //udpsockt bind local tcp port
+    QUdpSocket *udpSocket = new QUdpSocket(this);
+
 
     connect(tcpSocket,&QTcpSocket::connected,this,[=]{
         qDebug()<<"connect to server";
@@ -38,6 +41,12 @@ MainWindow::MainWindow(QWidget *parent)
         QStatusBar *bar = statusBar();
         QString info(tcpSocket->localAddress().toString()+":"+QString::number(tcpSocket->localPort()));
         bar->showMessage(info);
+
+
+        udpSocket->bind(tcpSocket->localPort()); //本地电脑 port <---> 路由器
+        qDebug()<<tcpSocket->localPort();
+
+
 
     });
 
@@ -71,13 +80,12 @@ MainWindow::MainWindow(QWidget *parent)
 
 
 
-    //udp + bind
-    QUdpSocket *udpSocket = new QUdpSocket(this);
-    udpSocket->bind(tcpSocket->localPort()); //本地电脑 port <---> 路由器
+
+
 
 
     QTimer *timer = new QTimer(this);
-    timer->start(1000);
+    //timer->start(1000);
 
     connect(timer,&QTimer::timeout,this,[=]{
         qDebug()<<"timeout";
@@ -105,6 +113,9 @@ MainWindow::MainWindow(QWidget *parent)
             addrEdit->setText(addr.toString());
             portEdit->setText(QString::number(port));
             textEdit->append(QString::fromLocal8Bit(msg));
+        }
+        else{
+            qDebug()<<"not padding";
         }
 
     });
