@@ -1,8 +1,7 @@
 #include "mainwindow.h"
 
 #include <QIcon>
-#include <QHostInfo>
-#include <QCloseEvent>
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -13,17 +12,27 @@ MainWindow::MainWindow(QWidget *parent)
     setCentralWidget(mainWidget);
 
 
-    //tcp
-    tcpServer = new QTcpServer(this);
-    //tcpServer->listen(QHostAddress::Any,8888);
-    qDebug()<<"listen...";
-    connect(tcpServer,&QTcpServer::newConnection,this,&MainWindow::ConnectToSlave);
+    //tcp client
+    QTcpSocket *tcpSocket = new QTcpSocket;
+    tcpSocket->connectToHost(QHostAddress("106.15.62.139"),1234);
+    qDebug()<<"connect...";
 
 
-    tcpSocket = new QTcpSocket(this);
-    tcpSocket->connectToHost(QHostAddress("101.228.78.132"),40700);
+    connect(tcpSocket,&QTcpSocket::connected,[=]{
+        qDebug()<<"connect to server";
+        qDebug() << tcpSocket->peerAddress().toString();
+        qDebug() << tcpSocket->peerPort();
+        qDebug() << tcpSocket->peerName();
+        qDebug()<<"----------------------";
+        qDebug()<<tcpSocket->localAddress();
+        qDebug()<<tcpSocket->localPort();
 
-    connect(tcpSocket,&QTcpSocket::connected,this,&MainWindow::ConnectTo);
+    });
+
+    connect(tcpSocket,&QTcpSocket::readyRead,[=]{
+        qDebug()<<"read ready";
+        qDebug()<<QString(tcpSocket->readAll());
+    });
 
 
 
@@ -35,38 +44,6 @@ MainWindow::~MainWindow()
 {
 }
 
-void MainWindow::ConnectToSlave()
-{
-    tcpSocket = tcpServer->nextPendingConnection();
-    bool ok = true;
-    qDebug()<<tcpSocket->peerAddress().toString().split("::ffff:")[1];
-    qDebug()<<tcpSocket->peerPort();
-    qDebug()<<tcpSocket->peerName();
-    connect(tcpSocket,&QTcpSocket::readyRead,this,&MainWindow::ReadInformation);
-}
-
-void MainWindow::ReadInformation()
-{
-    QByteArray rxData = tcpSocket->readAll();
-    qDebug()<<rxData;
-}
-
-void MainWindow::ConnectTo()
-{
-    qDebug()<<"connect";
-}
-
-
-
-void MainWindow::closeEvent(QCloseEvent *event)
-{
-    qDebug()<<tcpSocket->state();
-    tcpSocket->disconnectFromHost();
-    qDebug()<<tcpSocket->state();
-    tcpSocket->abort();
-    qDebug()<<tcpSocket->state();
-
-}
 
 
 

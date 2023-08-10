@@ -15,29 +15,7 @@ public:
 
 
 
-    //ui
-    //main widget
     QWidget *mainWidget;
-
-
-
-
-    //tcp socket
-private:
-    QTcpServer *tcpServer;
-    QTcpSocket *tcpSocket;
-
-    //tcp slots
-public slots:
-    void ConnectToSlave();
-    void ReadInformation();
-
-    void ConnectTo();
-
-
-    // QWidget interface
-protected:
-    virtual void closeEvent(QCloseEvent *event);
 
 
 };
