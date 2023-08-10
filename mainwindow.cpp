@@ -7,6 +7,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QByteArray>
+#include <QStatusBar>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -32,6 +33,10 @@ MainWindow::MainWindow(QWidget *parent)
         qDebug()<<"----------------------";
         qDebug()<<tcpSocket->localAddress();
         qDebug()<<tcpSocket->localPort();
+
+        QStatusBar *bar = statusBar();
+        QString info(tcpSocket->localAddress().toString()+":"+QString::number(tcpSocket->localPort()));
+        bar->showMessage(info);
 
     });
 
