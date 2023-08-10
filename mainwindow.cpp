@@ -61,12 +61,17 @@ MainWindow::MainWindow(QWidget *parent)
     //udp + bind
     QUdpSocket *udpSocket = new QUdpSocket(this);
     udpSocket->bind(tcpSocket->localPort());
-    QHostAddress addr(addrEdit->text());
-    quint16 port = portEdit->text().toUInt();
-    QByteArray byteArray = msgEdit->text().toLocal8Bit();
+
+
 
     connect(button,&QPushButton::clicked,this,[=]{
-        udpSocket->writeDatagram(byteArray,addr,port);
+        QHostAddress addr(addrEdit->text());
+        quint16 port = portEdit->text().toUInt();
+        QByteArray byteArray = msgEdit->text().toLocal8Bit();
+        qDebug()<<addr;
+        qDebug()<<port;
+        qDebug()<<byteArray;
+        qDebug()<<udpSocket->writeDatagram(byteArray.data(),strlen(byteArray.data()),addr,port);
     });
 
 
